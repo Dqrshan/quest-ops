@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Design lint on stylesheet save",
+      "trigger": "PostFileSave",
+      "description": "Runs the Hallmark design linter on the stylesheet whenever it is saved and reports Floor failures and reflex defaults.",
+      "matcher": "app/(globals|tokens)\\.css$",
+      "action": {
+        "type": "command",
+        "command": "node \"$HOME/.kiro/skills/hallmark/scripts/sloplint.mjs\" app/globals.css 2>&1 | grep -E \"FAIL|REFLEX|sloplint:\" | head -20 || true",
+        "timeout": 60
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Keep the spec's task list honest",
+      "trigger": "Stop",
+      "description": "Reminds the agent to keep the spec's task checklist in step with verified work.",
+      "action": {
+        "type": "agent",
+        "prompt": "Before ending the turn: if this turn finished or changed work listed in .kiro/specs/live-ops/tasks.md, tick or untick the matching checkboxes so the file reflects what is actually built and verified. Only tick a task when it was verified (a test, an API call, or a screenshot), not merely written."
+      }
+    }
+  ]
+}

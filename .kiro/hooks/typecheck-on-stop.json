@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Typecheck when the agent finishes",
+      "trigger": "Stop",
+      "description": "Runs the strict TypeScript check (cache disabled) at the end of every agent turn, so type errors never hide behind a hot-reloading dev server.",
+      "action": {
+        "type": "command",
+        "command": "npm run -s typecheck 2>&1 | tail -20",
+        "timeout": 120
+      }
+    }
+  ]
+}

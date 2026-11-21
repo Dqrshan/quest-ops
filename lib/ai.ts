@@ -11,17 +11,23 @@ export type GenerateInput = {
   includeTeam: boolean;
 };
 
-export type GenerateResult = { provider: "anthropic" | "openai" | "builtin"; quests: QuestDraft[]; note?: string };
+export type GenerateResult = {
+  provider: "anthropic" | "openai" | "builtin";
+  story: string;
+  quests: QuestDraft[];
+  note?: string;
+};
 
-const SYSTEM = `You design real-world quests for live events. Participants walk between physical stations, each marked with a QR code.
-Return ONLY a JSON array, no prose, no code fences. Each item:
-{"title": string (max 6 words), "brief": string (1-2 sentences, what the participant does or is asked at the station),
- "kind": "scan" | "answer" | "team", "points": integer 50-300,
- "answer": string (required for "answer": a short word or phrase the participant reads from a sign or already knows, never trivia the organizer cannot verify),
- "hint": string (where to find the station, max 12 words, no invented room names unless given),
- "team_size": integer 2-6 (only for "team": how many teammates must scan)}
-Rules: "scan" = reach the station. "answer" = read a codeword or answer a question about the event. "team" = several teammates must reach the station.
-Order quests as a route. Do not invent facts about the venue. Keep tone playful, short, concrete.`;
+const SYSTEM = `You design real-world quests for live events. Players walk between physical stations, each marked with a QR code, and scan them on their phones.
+Return ONLY a JSON object, no prose, no code fences:
+{"story": string (2-3 sentences that set the scene for the whole night, second person, present tense),
+ "quests": [{"title": string (max 5 words), "brief": string (1-2 sentences: what the player does at the station, in the story's voice),
+   "kind": "scan" | "answer" | "team", "points": integer 50-300,
+   "answer": string (only for "answer": one word or short phrase the organizer will print on a sign at the station),
+   "hint": string (where to find the station, max 10 words, generic unless the venue was described),
+   "team_size": integer 2-6 (only for "team": how many teammates must scan)}]}
+Rules: "scan" = reach the station. "answer" = read a codeword at the station or answer a question about the event. "team" = several teammates must reach the station together.
+Order quests as a route with rising points; make the last one the climax. Never invent facts about the venue. Keep language plain enough to read on a phone in a dark room.`;
 
 function userPrompt(i: GenerateInput) {
   return [
@@ -55,30 +61,29 @@ export async function generateQuests(input: GenerateInput): Promise<GenerateResu
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
   try {
-    if (anthropicKey) return { provider: "anthropic", quests: await viaAnthropic(anthropicKey, input) };
-    if (openaiKey) return { provider: "openai", quests: await viaOpenAI(openaiKey, input) };
+    if (anthropicKey) return { provider: "anthropic", ...(await viaAnthropic(anthropicKey, input)) };
+    if (openaiKey) return { provider: "openai", ...(await viaOpenAI(openaiKey, input)) };
   } catch (e) {
-    const fallback = builtin(input);
     return {
       provider: "builtin",
-      quests: fallback,
-      note: `The AI provider failed (${e instanceof Error ? e.message : "unknown error"}). Showing the built-in generator instead.`,
+      ...builtin(input),
+      note: `The AI provider failed (${e instanceof Error ? e.message : "unknown error"}), so this draft came from the built-in packs.`,
     };
   }
   return {
     provider: "builtin",
-    quests: builtin(input),
-    note: "No AI key is set, so this draft came from the built-in generator. Set ANTHROPIC_API_KEY or OPENAI_API_KEY for custom quests.",
+    ...builtin(input),
+    note: "No AI key is set, so this draft came from the built-in packs. Set ANTHROPIC_API_KEY or OPENAI_API_KEY for routes written for your venue.",
   };
 }
 
-async function viaAnthropic(key: string, input: GenerateInput): Promise<QuestDraft[]> {
+async function viaAnthropic(key: string, input: GenerateInput) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5",
-      max_tokens: 2500,
+      max_tokens: 3000,
       system: SYSTEM,
       messages: [{ role: "user", content: userPrompt(input) }],
     }),
@@ -86,16 +91,16 @@ async function viaAnthropic(key: string, input: GenerateInput): Promise<QuestDra
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const data = (await res.json()) as { content?: { type: string; text?: string }[] };
-  const text = data.content?.find((c) => c.type === "text")?.text ?? "";
-  return coerce(text, input);
+  return coerce(data.content?.find((c) => c.type === "text")?.text ?? "", input);
 }
 
-async function viaOpenAI(key: string, input: GenerateInput): Promise<QuestDraft[]> {
+async function viaOpenAI(key: string, input: GenerateInput) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM },
         { role: "user", content: userPrompt(input) },
@@ -108,15 +113,23 @@ async function viaOpenAI(key: string, input: GenerateInput): Promise<QuestDraft[
   return coerce(data.choices?.[0]?.message?.content ?? "", input);
 }
 
-/** Turn model text into validated drafts. Throws if nothing usable came back. */
-export function coerce(text: string, input: GenerateInput): QuestDraft[] {
-  const start = text.indexOf("[");
-  const end = text.lastIndexOf("]");
-  if (start < 0 || end <= start) throw new Error("no JSON array in reply");
-  const arr = JSON.parse(text.slice(start, end + 1)) as unknown;
-  if (!Array.isArray(arr)) throw new Error("reply was not an array");
+/** Turn model text into a validated story and drafts. Accepts the object form or a bare array. Throws if nothing usable came back. */
+export function coerce(text: string, input: GenerateInput): { story: string; quests: QuestDraft[] } {
+  const objStart = text.indexOf("{");
+  const arrStart = text.indexOf("[");
+  let parsed: unknown;
+  if (objStart >= 0 && (arrStart < 0 || objStart < arrStart)) {
+    parsed = JSON.parse(text.slice(objStart, text.lastIndexOf("}") + 1));
+  } else if (arrStart >= 0) {
+    parsed = JSON.parse(text.slice(arrStart, text.lastIndexOf("]") + 1));
+  } else throw new Error("no JSON in reply");
+
+  const list = Array.isArray(parsed) ? parsed : (parsed as { quests?: unknown }).quests;
+  const story = Array.isArray(parsed) ? "" : clean((parsed as { story?: unknown }).story, 600);
+  if (!Array.isArray(list)) throw new Error("reply had no quest list");
+
   const out: QuestDraft[] = [];
-  for (const item of arr) {
+  for (const item of list) {
     if (!item || typeof item !== "object") continue;
     const o = item as Record<string, unknown>;
     let kind: QuestKind = o.kind === "answer" || o.kind === "team" ? o.kind : "scan";
@@ -137,45 +150,66 @@ export function coerce(text: string, input: GenerateInput): QuestDraft[] {
     if (out.length >= input.count) break;
   }
   if (!out.length) throw new Error("no usable quests");
-  return out;
+  return { story, quests: out };
 }
 
-/* ---------------------------------------------------------- built-in generator */
+/* ---------------------------------------------------------- built-in packs */
 
-const CODEWORDS = ["falcon", "lantern", "cobalt", "ember", "harbor", "juniper", "meteor", "nimbus", "orbit", "pixel", "quartz", "relay", "summit", "tundra", "velvet", "willow"];
+type PackItem = { title: string; brief: string; hint: string; kind: QuestKind };
 
-const POOL: { title: string; brief: string; hint: string; kind: QuestKind }[] = [
-  { title: "Opening gate", brief: "Start the run. Scan the gate station to get on the board.", hint: "Main entrance, near registration", kind: "scan" },
-  { title: "Read the sign", brief: "Find the codeword on the station sign and type it in.", hint: "Look for the sign at the first hub", kind: "answer" },
+const HAUNTED: PackItem[] = [
+  { title: "The gatehouse", brief: "Sign in with the dead. Scan the lantern by the door to enter.", hint: "Main entrance", kind: "scan" },
+  { title: "Read the epitaph", brief: "A headstone carries one word. Enter it to pass.", hint: "Look for the stone sign", kind: "answer" },
+  { title: "Seance circle", brief: "Gather your crew at the table. The spirit wakes when enough of you scan.", hint: "A quiet room with candles", kind: "team" },
+  { title: "The laboratory", brief: "Find the bench of jars and scan the card beneath them.", hint: "A workshop or side room", kind: "scan" },
+  { title: "Feed the cauldron", brief: "Bring something from the food table and scan the pot.", hint: "Food and drink area", kind: "scan" },
+  { title: "Whisper the word", brief: "A word is written in the mirror's fog. Bring it back.", hint: "A mirror or a dark corridor", kind: "answer" },
+  { title: "The organ loft", brief: "Follow the music and scan the sheet on the stand.", hint: "Near the stage", kind: "scan" },
+  { title: "Raise the crew", brief: "Every hand on the coffin lid. Your team scans together.", hint: "Photo wall", kind: "team" },
+  { title: "The hidden crypt", brief: "Off the main path, behind something. Find it and scan.", hint: "Off the main route", kind: "scan" },
+  { title: "Name the creature", brief: "The tag on the creature's toe has a name. Enter it.", hint: "Wherever the creature lies", kind: "answer" },
+  { title: "Meet a stranger", brief: "Find someone outside your crew and scan this together.", hint: "Lounge or bar", kind: "scan" },
+  { title: "Pull the switch", brief: "Bring the creature to life. The final station.", hint: "Near the exit", kind: "scan" },
+];
+
+const CLASSIC: PackItem[] = [
+  { title: "Opening gate", brief: "Start the run. Scan the gate station to get on the board.", hint: "Main entrance", kind: "scan" },
+  { title: "Read the sign", brief: "Find the codeword on the station sign and type it in.", hint: "The first hub", kind: "answer" },
   { title: "Squad up", brief: "Get your teammates to this station together. Everyone scans.", hint: "Somewhere with space to gather", kind: "team" },
   { title: "Sponsor stop", brief: "Visit a sponsor table and scan the station card.", hint: "Sponsor area", kind: "scan" },
   { title: "Fuel up", brief: "Grab a drink or a snack, then scan the station at the table.", hint: "Food and drink area", kind: "scan" },
-  { title: "Codeword relay", brief: "The station sign holds a codeword. Bring it back.", hint: "Quieter corner away from the stage", kind: "answer" },
+  { title: "Codeword relay", brief: "The station sign holds a codeword. Bring it back.", hint: "A quieter corner", kind: "answer" },
   { title: "Stage watch", brief: "Catch part of a session and scan at the stage door.", hint: "Main stage entrance", kind: "scan" },
-  { title: "Team photo spot", brief: "Gather your team at the marked spot. The bonus unlocks when enough of you scan.", hint: "Photo wall", kind: "team" },
+  { title: "Team photo", brief: "Gather your team at the marked spot. The bonus unlocks when enough of you scan.", hint: "Photo wall", kind: "team" },
   { title: "Hidden station", brief: "This one is not on the main route. Look around and scan it.", hint: "Off the main path", kind: "scan" },
   { title: "Sign check", brief: "Read the codeword printed on this station and enter it.", hint: "Upper level or far wall", kind: "answer" },
   { title: "Meet someone new", brief: "Introduce yourself to a stranger, then scan this station together.", hint: "Lounge or networking area", kind: "scan" },
   { title: "Final stretch", brief: "Reach the closing station before the doors shut.", hint: "Near the exit", kind: "scan" },
 ];
 
-export function builtin(input: GenerateInput): QuestDraft[] {
+const HAUNTED_WORDS = ["nevermore", "lazarus", "hollow", "lantern", "raven", "ember", "crypt", "moth", "wither", "candle"];
+const CLASSIC_WORDS = ["falcon", "cobalt", "harbor", "juniper", "meteor", "nimbus", "orbit", "quartz", "relay", "summit"];
+
+const SPOOKY = /hallow|haunt|spook|ghost|horror|zombie|vampire|witch|monster|frankenst|creep|dark|night|kiroween|dead|grave|crypt|seance/i;
+
+export function builtin(input: GenerateInput): { story: string; quests: QuestDraft[] } {
+  const haunted = !input.vibe || SPOOKY.test(`${input.vibe} ${input.eventName}`);
+  const pool = (haunted ? HAUNTED : CLASSIC).filter((q) => input.includeTeam || q.kind !== "team");
+  const words = [...(haunted ? HAUNTED_WORDS : CLASSIC_WORDS)].sort(() => crypto.randomInt(3) - 1);
   const base = input.difficulty === "easy" ? 75 : input.difficulty === "hard" ? 150 : 100;
-  const words = [...CODEWORDS].sort(() => crypto.randomInt(3) - 1);
-  const picks: typeof POOL = [];
-  for (const q of POOL) {
-    if (!input.includeTeam && q.kind === "team") continue;
-    picks.push(q);
-  }
-  const chosen = picks.slice(0, input.count);
+  const chosen = [...pool.slice(0, input.count - 1), pool[pool.length - 1]].filter((q, i, a) => a.indexOf(q) === i).slice(0, input.count);
   let w = 0;
-  return chosen.map((q, i) => ({
+  const quests = chosen.map((q, i) => ({
     title: q.title,
-    brief: input.vibe ? `${q.brief} (Theme: ${input.vibe}.)` : q.brief,
+    brief: q.brief,
     kind: q.kind,
-    points: base + (q.kind === "team" ? 100 : q.kind === "answer" ? 50 : 0) + (i === chosen.length - 1 ? 50 : 0),
+    points: base + (q.kind === "team" ? 100 : q.kind === "answer" ? 50 : 0) + (i === chosen.length - 1 ? 100 : 0),
     answer: q.kind === "answer" ? words[w++ % words.length] : null,
     hint: q.hint,
     team_size: q.kind === "team" ? 3 : 1,
   }));
+  const story = haunted
+    ? `The doors of ${input.eventName} creak open at dusk. Something on the slab is waiting to be brought back to life, and only the stations you reach tonight will wake it.`
+    : `Welcome to ${input.eventName}. ${input.vibe ? `Tonight's theme is ${input.vibe}. ` : ""}Walk the route, scan each station and climb the board before the doors close.`;
+  return { story, quests };
 }
