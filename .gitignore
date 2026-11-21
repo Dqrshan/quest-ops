@@ -1,0 +1,10 @@
+data/*.db*
+.env
+.env.local
+.hallmark/captures
+.hallmark/shots
+.next
+next-env.d.ts
+node_modules
+*.tsbuildinfo
+.hallmark/salt

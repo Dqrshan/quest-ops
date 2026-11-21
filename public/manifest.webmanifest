@@ -1,0 +1,10 @@
+{
+  "name": "QuestOps",
+  "short_name": "QuestOps",
+  "description": "Quests, QR stations, teams and a live leaderboard for events.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef0f4",
+  "theme_color": "#eef0f4",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
