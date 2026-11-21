@@ -1,24 +1,34 @@
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
-  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.25rem; --text-xl: 1.5625rem; --text-2xl: 1.953rem; --text-3xl: 2.441rem;
-  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem); --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
-  --text-section: clamp(2rem, 2.5vw + 1rem, 3.5rem); --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem); --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.1875rem; --text-xl: 1.5rem; --text-2xl: 2rem; --text-3xl: 2.75rem;
+  --text-display-s: clamp(2.5rem, 4.5vw + 0.75rem, 4.25rem); --text-display: clamp(3.25rem, 6vw + 1rem, 6rem);
+  --text-section: clamp(2.25rem, 3.5vw + 1rem, 4.5rem); --text-title: clamp(1.375rem, 1vw + 1rem, 1.875rem); --text-lead: clamp(1.125rem, 0.4vw + 1rem, 1.375rem);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
-  --color-error: oklch(52% 0.19 27); --color-success: oklch(50% 0.12 150);
-  --container: 1440px; --gutter: 64px; --gap-columns: 32px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --container: 1320px; --gutter: 56px; --gap-columns: 40px; --section-gap-s: 112px; --section-gap: 144px; --section-gap-l: 176px;
   --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
-  --color-paper: oklch(95.5% 0.006 250); --color-paper-2: oklch(91% 0.009 250); --color-paper-3: oklch(99.5% 0.005 250);
-  --color-ink: oklch(16% 0.014 262); --color-ink-2: oklch(29% 0.014 262); --color-muted: oklch(47% 0.016 260);
-  --color-rule: oklch(80% 0.011 250); --color-ink-rule: oklch(34% 0.014 262);
-  --color-accent: oklch(51% 0.22 264); --color-accent-2: oklch(81% 0.16 82); --color-accent-ink: oklch(99.5% 0.003 250); --color-focus: oklch(51% 0.22 264);
-  --font-display: "Chivo Mono Variable", "Chivo Mono", ui-monospace, monospace; --font-body: var(--font-display); --font-outlier: var(--font-body);
-  --radius-card: 0; --radius-pill: 999px; --rule-hair: 1px; --rule-bar: 2px;
-  --shadow-card: 0 24px 40px -24px oklch(8% 0.01 260 / 0.6);
-  --color-on-amber: oklch(16% 0.014 262); --color-muted-on-ink: oklch(78% 0.01 255);
-  --night-paper: oklch(15% 0.012 262); --night-paper-2: oklch(21% 0.013 262); --night-paper-3: oklch(25% 0.013 262);
-  --night-ink: oklch(96% 0.005 250); --night-ink-2: oklch(86% 0.006 250); --night-muted: oklch(72% 0.01 255);
-  --night-rule: oklch(31% 0.014 262); --night-accent: oklch(62% 0.2 264); --night-focus: oklch(72% 0.16 264);
-  --tracking-display: -0.03em; --display-weight: 800;
+
+  /* The projection booth: a warm, red-tinted black, bone-white type. */
+  --color-paper: oklch(13.5% 0.012 25); --color-paper-2: oklch(17.5% 0.016 25); --color-paper-3: oklch(22% 0.02 25);
+  --color-ink: oklch(93% 0.028 85); --color-ink-2: oklch(84% 0.03 80); --color-muted: oklch(71% 0.03 72);
+  --color-rule: oklch(33% 0.025 30); --color-rule-strong: oklch(48% 0.03 40);
+
+  /* Two-pass poster print: radium green for what is live, blood red for alarms and endings. */
+  --color-accent: oklch(86% 0.2 140); --color-accent-ink: oklch(15% 0.04 140); --color-focus: oklch(86% 0.2 140);
+  --color-blood: oklch(60% 0.21 27); --color-blood-ink: oklch(13% 0.02 25); --color-blood-deep: oklch(30% 0.12 27);
+  --color-error: oklch(72% 0.16 27); --color-success: oklch(86% 0.2 140);
+  --color-scrim: oklch(8% 0.01 25 / 0.82); --color-mask: oklch(6% 0.01 25);
+
+  /* The ticket: bone card stock printed in booth black. */
+  --color-ticket: oklch(90% 0.035 85); --color-ticket-ink: oklch(16% 0.015 30); --color-ticket-muted: oklch(41% 0.03 45);
+  --color-qr-ground: oklch(99% 0.006 85);
+
+  --font-display: "Antonio Variable", "Antonio", "Arial Narrow", ui-sans-serif, sans-serif;
+  --font-body: "Hanken Grotesk Variable", "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: "Azeret Mono Variable", "Azeret Mono", ui-monospace, monospace;
+
+  --radius-card: 0; --radius-pill: 999px; --rule-hair: 1px; --rule-bar: 2px; --rule-heavy: 4px;
+  --shadow-card: none; --shadow-sheet: 0 -24px 64px -24px oklch(0% 0 0 / 0.8);
+  --tracking-display: -0.005em; --display-weight: 700;
 }

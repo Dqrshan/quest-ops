@@ -1,194 +1,234 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Brand } from "@/components/Brand";
+import { feedLine } from "@/lib/feed";
 import { KindIcon, kindLabel } from "@/components/icons";
-import { LiveBoardBand } from "@/components/LiveBoard";
-import { QuestLine } from "@/components/QuestLine";
-import { builtin } from "@/lib/ai";
-import { findPlayerByName, listQuests, playerView, questReach, snapshot } from "@/lib/game";
+import { NowShowing } from "@/components/landing/NowShowing";
+import { ThreeScreens } from "@/components/landing/ThreeScreens";
+import { findPlayerByName, playerView, snapshot } from "@/lib/game";
+import { originFrom } from "@/lib/http";
+import { joinUrl, qrSvg } from "@/lib/qr";
 import { DEMO_CODE, ensureDemo } from "@/lib/seed";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
+const REPO = "https://github.com/Dqrshan/quest-ops";
+
+const CONTROLS = [
+  ["Announce", "Every phone, every screen."],
+  ["Run the clock", "All screens count down."],
+  ["Pause play", "Hold scans for a talk."],
+  ["Spot the stalled", "Idle for fifteen minutes."],
+  ["Adjust points", "Reward the best costume."],
+  ["Export results", "Standings as a CSV."],
+] as const;
+
+const KINDS = [
+  { kind: "scan", name: "Reach it", what: "The player scans the ticket at the station." },
+  { kind: "answer", name: "Prove it", what: "They scan, then enter the codeword printed on the sign." },
+  { kind: "team", name: "Bring the crew", what: "Enough teammates scan and the whole team earns a bonus." },
+] as const;
+
+const FAQ = [
+  ["Do players need an app?", "No. A name in the browser."],
+  ["Can players read the answers?", "No. Codewords stay on the server."],
+  ["How big can an event get?", "Tested at 60 open screens so far."],
+  ["What does it need?", "Phones, a laptop, a projector. An AI key is optional."],
+] as const;
+
+export default async function Home() {
   const event = ensureDemo();
   const snap = snapshot(event);
-  const quests = listQuests(event.id);
-  const reach = questReach(event.id);
-  const ade = findPlayerByName(event.id, "Ade");
-  const view = ade ? playerView(event, ade) : null;
-  const sample = builtin({ eventName: "Demo Night", venue: "", audience: "", vibe: "", count: 6, difficulty: "medium", includeTeam: true });
+  const guest = findPlayerByName(event.id, "Ade");
+  const view = guest ? playerView(event, guest) : null;
+  const joinQr = await qrSvg(joinUrl(originFrom(await headers()), DEMO_CODE));
+  const station = snap.stations.find((s) => s.kind === "team") ?? snap.stations[0];
+  const credits = snap.players.slice(0, 3);
+  const moment = snap.feed.find((f) => f.kind === "scan");
 
   return (
     <>
-      <header className="pill-nav">
-        <div className="pill-nav__bar">
+      <a className="skip" href="#main">
+        Skip to content
+      </a>
+      <header className="site-nav">
+        <div className="container site-nav__in">
           <Brand />
-          <nav className="pill-nav__links" aria-label="Main">
-            <a href="#how">How it runs</a>
-            <a href="#board">Live board</a>
-            <a href="#phone">On a phone</a>
+          <nav aria-label="Main" className="site-nav__links">
+            <a href="#night">The night</a>
+            <a href="#screens">Three screens</a>
+            <a href="#questions">Questions</a>
           </nav>
-          <Link className="btn btn--primary" href="/console">
-            Start an event
+          <Link className="btn btn--primary btn--sm" href="/console">
+            Open the booth
           </Link>
         </div>
       </header>
 
-      <main>
-        <section className="hero">
+      <main id="main">
+        <section className="hero" aria-labelledby="hero-h">
           <div className="container">
-            <div className="hero__head">
-              <h1>Make your event a game.</h1>
-              <p className="lead">Quests, QR stations, teams and a live board, run from one console.</p>
-              <div className="hero__actions">
-                <Link className="btn btn--primary" href="/console">
-                  Start an event
-                </Link>
-                <Link className="btn btn--ghost" href={`/play/${DEMO_CODE}`}>
-                  Play the demo
-                </Link>
+            <div className="hero__bill">
+              <h1 id="hero-h" className="hero__title">
+                Tonight, your event is the feature.
+              </h1>
+              <div className="hero__aside">
+                <p className="hero__lead">Quests, QR stations, teams and a live screen, run from one booth.</p>
+                <div className="row-actions">
+                  <Link className="btn btn--primary" href="/console/new">
+                    Set up an event
+                  </Link>
+                  <Link className="btn btn--ghost" href={`/board/${DEMO_CODE}`}>
+                    Watch the demo
+                  </Link>
+                </div>
               </div>
             </div>
-
-            <figure className="map" aria-label={`The ${snap.event.name} quest line`} style={{ ["--n" as string]: quests.length }}>
-              <ol className="map__stops">
-                {quests.map((q) => (
-                  <li key={q.id} className={`map__stop ${q.position === 1 ? "map__stop--first" : ""}`}>
-                    <span className="map__mark num">{q.position}</span>
-                    <span className="map__title">{q.title}</span>
-                    <span className="map__meta">
-                      <span className="map__kind">
-                        <KindIcon kind={q.kind} size={14} /> {kindLabel[q.kind]}
-                      </span>
-                      <span className="num">{q.points} points, {reach.get(q.id) ?? 0} reached</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <figcaption className="map__foot">
-                Demo Night, {snap.totals.players} generated players.
-              </figcaption>
+            <figure className="hero__screen">
+              <NowShowing code={DEMO_CODE} initial={snap} />
+              <figcaption className="caption">The Haunted Hall, playing now. Its players are simulated.</figcaption>
             </figure>
           </div>
         </section>
 
-        <section className="section" id="how" aria-labelledby="how-h">
+        <section className="section" id="night" aria-labelledby="night-h">
           <div className="container">
-            <h2 id="how-h">Four moves to a live event.</h2>
-            <ol className="steps">
-              <li className="steps__plate">
-                <span className="steps__fig num" aria-hidden="true">1</span>
-                <div className="stack">
-                  <h3>Describe it</h3>
-                  <p>The event, the crowd, the mood.</p>
+            <h2 id="night-h" className="section__h">Three reels, one night.</h2>
+            <ol className="reels">
+              <li className="reel">
+                <span className="reel__n num" aria-hidden="true">1</span>
+                <div className="reel__text">
+                  <h3>Before the doors</h3>
+                  <p>Describe the night. AI drafts a storyline and a route; you edit every station, then print admit-one tickets.</p>
+                </div>
+                <div className="reel__art" aria-hidden="true">
+                  {station ? (
+                    <div className="admit admit--mini">
+                      <div className="admit__body">
+                        <p className="admit__title">{station.title}</p>
+                        <p>
+                          <KindIcon kind={station.kind} size={14} /> {kindLabel[station.kind]}
+                        </p>
+                        <p className="admit__pts num">{station.points} points</p>
+                      </div>
+                      <div className="admit__stub">
+                        <p className="admit__n num">{station.position}</p>
+                        <div className="admit__qr" dangerouslySetInnerHTML={{ __html: joinQr }} />
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </li>
-              <li className="steps__plate">
-                <span className="steps__fig num" aria-hidden="true">2</span>
-                <div className="stack">
-                  <h3>Review the route</h3>
-                  <p>AI drafts. You edit.</p>
+              <li className="reel">
+                <span className="reel__n num" aria-hidden="true">2</span>
+                <div className="reel__text">
+                  <h3>Showtime</h3>
+                  <p>Players scan, answer and gather their crews. From the booth you announce, run the clock and pause play.</p>
+                </div>
+                <div className="reel__art" aria-hidden="true">
+                  {moment ? (
+                    <div className="jolt__card jolt__card--still">
+                      <p className="jolt__fig num">+{moment.points}</p>
+                      <p className="jolt__line">
+                        {feedLine(moment).who} {feedLine(moment).what}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               </li>
-              <li className="steps__plate">
-                <span className="steps__fig num" aria-hidden="true">3</span>
-                <div className="stack">
-                  <h3>Print the codes</h3>
-                  <p>One QR card per station.</p>
+              <li className="reel">
+                <span className="reel__n num" aria-hidden="true">3</span>
+                <div className="reel__text">
+                  <h3>End credits</h3>
+                  <p>The screen names the top three and rolls the credits. Every result exports to a spreadsheet.</p>
                 </div>
-              </li>
-              <li className="steps__plate">
-                <span className="steps__fig num" aria-hidden="true">4</span>
-                <div className="stack">
-                  <h3>Open the doors</h3>
-                  <p>Players join with a name.</p>
+                <div className="reel__art" aria-hidden="true">
+                  <ol className="credits-mini">
+                    {credits.map((p) => (
+                      <li key={p.id}>
+                        <span>{p.team ?? "Solo"}</span>
+                        <span>{p.name}</span>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               </li>
             </ol>
           </div>
         </section>
 
-        <section className="section" aria-labelledby="route-h">
-          <div className="container split">
-            <div className="split__head">
-              <h2 id="route-h">Describe the night. Get the route.</h2>
-              <p className="lead">Three station types cover most events: reach it, answer it, or bring your team.</p>
-            </div>
-            <div>
-              <ol className="routes">
-                {sample.map((q, i) => (
-                  <li key={q.title}>
-                    <span className="routes__n num">{i + 1}</span>
-                    <span className="routes__t">{q.title}</span>
-                    <span className="routes__k">
-                      <KindIcon kind={q.kind} size={14} /> {kindLabel[q.kind]}
+        <section className="section" id="screens" aria-labelledby="screens-h">
+          <div className="container">
+            <h2 id="screens-h" className="section__h">Three screens, one source of truth.</h2>
+            <ThreeScreens snap={snap} view={view} />
+          </div>
+        </section>
+
+        <section className="section" aria-labelledby="kinds-h">
+          <div className="container">
+            <h2 id="kinds-h" className="section__h">Three kinds of station.</h2>
+            <ul className="kinds">
+              {KINDS.map((k) => {
+                const ex = snap.stations.find((s) => s.kind === k.kind);
+                return (
+                  <li key={k.kind} className="kinds__row">
+                    <span className="kinds__icon" aria-hidden="true">
+                      <KindIcon kind={k.kind} size={28} />
                     </span>
-                    <span className="routes__p num">{q.points}</span>
+                    <h3 className="kinds__name">{k.name}</h3>
+                    <p className="kinds__what">{k.what}</p>
+                    {ex ? (
+                      <p className="kinds__ex">
+                        {ex.title}, <span className="num">{ex.points}</span> points
+                      </p>
+                    ) : null}
                   </li>
-                ))}
-              </ol>
-              <p className="routes__note">Sample route from the built-in generator. Add an Anthropic or OpenAI key and it writes for your venue.</p>
-            </div>
+                );
+              })}
+            </ul>
           </div>
         </section>
 
-        <section className="section section--ink" id="board" aria-labelledby="board-h">
-          <div className="container split">
-            <div className="split__head">
-              <h2 id="board-h">The venue screen runs itself.</h2>
-              <p className="lead">Every scan lands on the board within a second. Put it on a projector and walk away.</p>
-            </div>
-            <LiveBoardBand code={event.code} initial={snap} />
-          </div>
-        </section>
-
-        <section className="section" id="phone" aria-labelledby="phone-h">
-          <div className="container split split--flip">
-            <div className="stack stack--lg">
-              <h2 id="phone-h">One name. Then walk the line.</h2>
-              <ul className="facts-list">
-                <li>
-                  <h3>Scan with any camera</h3>
-                  <p>Each station QR opens the game on the player&apos;s own phone.</p>
-                </li>
-                <li>
-                  <h3>Answers stay on the server</h3>
-                  <p>Quiz answers never reach the browser, so they cannot be read off the page.</p>
-                </li>
-                <li>
-                  <h3>Teams earn together</h3>
-                  <p>A team station pays a bonus once enough teammates have scanned it.</p>
-                </li>
-              </ul>
-            </div>
-            {view ? (
-              <div className="phone" role="img" aria-label="The player view: a score and a line of stations">
-                <div className="phone__head">
-                  <p>
-                    <strong>{snap.event.name}</strong>
-                    {view.me.name}, {view.me.team}
-                  </p>
-                  <span className="phone__score num">{view.me.score}</span>
+        <section className="band" aria-labelledby="booth-h">
+          <div className="container band__in">
+            <h2 id="booth-h" className="band__h">Run the night from the booth.</h2>
+            <dl className="controls">
+              {CONTROLS.map(([k, v]) => (
+                <div key={k}>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
                 </div>
-                <QuestLine quests={view.quests} />
-              </div>
-            ) : null}
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        <section className="section" id="questions" aria-labelledby="faq-h">
+          <div className="container faq">
+            <div className="faq__side">
+              <h2 id="faq-h" className="section__h">The box office.</h2>
+            </div>
+            <div className="faq__list">
+              {FAQ.map(([q, a]) => (
+                <details key={q}>
+                  <summary>{q}</summary>
+                  <p>{a}</p>
+                </details>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="close" aria-labelledby="close-h">
-          <div className="container">
-            <div className="close__letter">
-              <h2 id="close-h">Your next event, played.</h2>
-              <p className="lead">Open the console, draft a route and print the first card. The demo event is already in there to poke at.</p>
-              <div className="row-actions">
-                <Link className="btn btn--primary" href="/console">
-                  Start an event
-                </Link>
-                <Link className="btn btn--ghost" href={`/board/${DEMO_CODE}`}>
-                  See the venue screen
-                </Link>
-              </div>
+          <div className="container close__in">
+            <h2 id="close-h" className="close__h">The doors open when you go live.</h2>
+            <div className="row-actions">
+              <Link className="btn btn--primary btn--lg" href="/console/new">
+                Set up an event
+              </Link>
+              <a className="btn btn--ghost btn--lg" href={REPO}>
+                Read the code
+              </a>
             </div>
           </div>
         </section>
@@ -197,11 +237,13 @@ export default function Home() {
       <footer className="foot">
         <div className="container foot__in">
           <Brand />
-          <nav aria-label="Footer">
-            <Link href="/console">Console</Link>
-            <Link href={`/play/${DEMO_CODE}`}>Demo on a phone</Link>
-            <Link href={`/board/${DEMO_CODE}`}>Demo venue screen</Link>
+          <nav aria-label="Footer" className="foot__links">
+            <Link href="/console">The booth</Link>
+            <Link href={`/play/${DEMO_CODE}`}>Demo ticket</Link>
+            <Link href={`/board/${DEMO_CODE}`}>Demo screen</Link>
+            <a href={REPO}>GitHub</a>
           </nav>
+          <p className="foot__fine">Built with Kiro for Kiroween 2026. MIT licence.</p>
         </div>
       </footer>
     </>

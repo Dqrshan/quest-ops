@@ -13,9 +13,9 @@
   - [x] 2.4 Endpoints: announcements, clock and pause, adjust, remove player, export CSV, live view
   - _Requirements: 2, 3, 4, 5, 6_
 
-- [ ] 3. AI setup flow
+- [x] 3. AI setup flow
   - [x] 3.1 Storyline in AI output; built-in haunted and classic packs
-  - [ ] 3.2 `/api/console/generate` (done, verified) and the guided setup at `/console/new`
+  - [x] 3.2 `/api/console/generate` and the guided setup at `/console/new`
   - _Requirements: 9_
 
 - [x] 4. Haunted Hall demo
@@ -23,24 +23,24 @@
   - [x] 4.2 Simulator in the bus: check-ins, announcements, reset, clock renewal
   - _Requirements: 10_
 
-- [ ] 5. Console mission control
-  - [ ] 5.1 Live tab: status, pause, round clock, announcements, station reach, stalled players, feed
-  - [ ] 5.2 Players tab: search, adjust, remove; export
-  - [ ] 5.3 Stations tab: existing list and AI drafting
+- [x] 5. Console mission control
+  - [x] 5.1 Live tab: status, pause, round clock, announcements, station reach, stalled players, feed
+  - [x] 5.2 Players tab: search, adjust, remove; export
+  - [x] 5.3 Stations tab: existing list and AI drafting
   - _Requirements: 2, 3, 4, 5, 6_
 
-- [ ] 6. Player phone
-  - [ ] 6.1 Personal stream; level and progress; next station
-  - [ ] 6.2 Station sheet; correct team progress copy
-  - [ ] 6.3 Celebration and haptics; announcement banner; round clock
-  - [ ] 6.4 Recap on event end with share
+- [x] 6. Player phone
+  - [x] 6.1 Personal stream; level and progress; next station
+  - [x] 6.2 Station sheet; correct team progress copy
+  - [x] 6.3 Celebration and haptics; announcement banner; round clock
+  - [x] 6.4 Recap on event end with share
   - _Requirements: 7_
 
-- [ ] 7. Venue screen
-  - [ ] 7.1 Round clock, announcement takeover, spotlight
-  - [ ] 7.2 Finale with top three
+- [x] 7. Venue screen
+  - [x] 7.1 Round clock, announcement takeover, spotlight
+  - [x] 7.2 Finale with top three
   - _Requirements: 8_
 
-- [ ] 8. Verify
-  - [ ] 8.1 End-to-end API script covering every requirement above
-  - [ ] 8.2 Headless browser pass on phone and desktop for each surface
+- [x] 8. Verify
+  - [x] 8.1 End-to-end API script covering every requirement above
+  - [x] 8.2 Headless browser pass on phone and desktop for each surface

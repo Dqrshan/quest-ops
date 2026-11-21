@@ -1,13 +1,14 @@
-import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/console/Forms";
+import { kindVerb } from "@/components/icons";
 import { getEventById, listQuests } from "@/lib/game";
 import { originFrom } from "@/lib/http";
 import { joinUrl, qrSvg, stationUrl } from "@/lib/qr";
 import { requireOrganizer } from "../../gate";
 
-export const metadata = { title: "Print stations" };
+export const metadata = { title: "Print tickets" };
 
 export default async function PrintPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ answers?: string }> }) {
   await requireOrganizer();
@@ -23,35 +24,52 @@ export default async function PrintPage({ params, searchParams }: { params: Prom
     <div className="stack stack--lg">
       <div className="noprint between">
         <div className="stack">
-          <h1 className="console__h1">Station sheets</h1>
-          <p>
-            One card per station, plus a join poster. {hasAnswers ? (showAnswers ? "Codewords are shown on the cards." : "Codewords are hidden from the cards.") : null}
+          <h1 className="console__h1">Admit-one tickets</h1>
+          <p className="muted">
+            One ticket per station, plus a join poster. Cut along the dashes and stick each at its station.
+            {hasAnswers ? (showAnswers ? " Codewords are printed on the cards." : " Codewords are hidden; print them on the station signs.") : ""}
           </p>
         </div>
         <div className="row-actions">
+          <Link className="btn btn--ghost" href={`/console/${event.id}`}>
+            Back to the booth
+          </Link>
           {hasAnswers ? (
             <Link className="btn btn--ghost" href={`/console/${event.id}/print${showAnswers ? "" : "?answers=1"}`}>
-              {showAnswers ? "Hide codewords" : "Show codewords on cards"}
+              {showAnswers ? "Hide codewords" : "Show codewords"}
             </Link>
           ) : null}
           <PrintButton />
         </div>
       </div>
-      <div className="sheets">
-        <article className="sheet sheet--join">
-          <h2>Join {event.name}</h2>
-          <div className="sheet__qr" dangerouslySetInnerHTML={{ __html: join }} role="img" aria-label="QR code to join the event" />
-          <p className="sheet__code num">{event.code}</p>
-          <p>Scan with your phone camera. No account needed.</p>
+      <div className="tickets">
+        <article className="admit admit--join">
+          <div className="admit__body">
+            <h2 className="admit__title">Join {event.name}</h2>
+            <p>Scan with your phone camera to join. No account, no app.</p>
+            <p className="admit__code num">{event.code}</p>
+          </div>
+          <div className="admit__stub">
+            <p className="admit__n">Join</p>
+            <div className="admit__qr" dangerouslySetInnerHTML={{ __html: join }} role="img" aria-label="QR code to join the event" />
+          </div>
         </article>
         {cards.map(({ q, svg }) => (
-          <article key={q.id} className="sheet">
-            <p className="sheet__n num">{q.position}</p>
-            <h2>{q.title}</h2>
-            <div className="sheet__qr" dangerouslySetInnerHTML={{ __html: svg }} role="img" aria-label={`QR code for station ${q.position}`} />
-            <p className="sheet__pts num">{q.points} points</p>
-            {q.kind === "answer" && showAnswers ? <p className="sheet__word">Codeword: <strong>{q.answer}</strong></p> : null}
-            {q.kind === "team" ? <p>Team station: {q.team_size} teammates must scan.</p> : null}
+          <article key={q.id} className="admit">
+            <div className="admit__body">
+              <h2 className="admit__title">{q.title}</h2>
+              <p>{kindVerb[q.kind]}{q.kind === "team" ? `: ${q.team_size} teammates` : ""}.</p>
+              {q.kind === "answer" && showAnswers ? (
+                <p className="admit__word">
+                  Codeword <strong>{q.answer}</strong>
+                </p>
+              ) : null}
+              <p className="admit__pts num">{q.points} points</p>
+            </div>
+            <div className="admit__stub">
+              <p className="admit__n num" aria-label={`Station ${q.position}`}>{q.position}</p>
+              <div className="admit__qr" dangerouslySetInnerHTML={{ __html: svg }} role="img" aria-label={`QR code for station ${q.position}, ${q.title}`} />
+            </div>
           </article>
         ))}
       </div>

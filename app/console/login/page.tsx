@@ -9,13 +9,16 @@ export default async function LoginPage() {
   if (s === "open" || s === "authed") redirect("/console");
   return (
     <div className="narrow stack stack--lg">
-      <h1 className="console__h1">Organizer sign-in</h1>
+      <h1 className="console__h1">The booth is locked</h1>
       {s === "unconfigured" ? (
         <p className="alert" role="alert">
-          CONSOLE_PASSCODE is not set on this server. Set it and restart to turn the console on.
+          CONSOLE_PASSCODE is not set on this server. Set it and restart to open the booth.
         </p>
       ) : (
-        <LoginForm />
+        <>
+          <p className="muted">Enter the organizer passcode for this server.</p>
+          <LoginForm />
+        </>
       )}
     </div>
   );

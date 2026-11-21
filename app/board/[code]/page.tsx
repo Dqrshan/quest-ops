@@ -3,25 +3,22 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { BoardScreen } from "@/components/BoardScreen";
 import { getEventByCode, snapshot } from "@/lib/game";
-import { qrSvg, joinUrl } from "@/lib/qr";
 import { originFrom } from "@/lib/http";
+import { joinUrl, qrSvg } from "@/lib/qr";
+import { DEMO_CODE, ensureDemo } from "@/lib/seed";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
   const e = getEventByCode((await params).code);
-  return { title: e ? `${e.name}: live board` : "Event not found", robots: { index: false } };
+  return { title: e ? `${e.name}: venue screen` : "Event not found", robots: { index: false } };
 }
 
 export default async function BoardPage({ params }: { params: Promise<{ code: string }> }) {
-  const event = getEventByCode((await params).code);
+  const code = (await params).code.toUpperCase();
+  if (code === DEMO_CODE) ensureDemo();
+  const event = getEventByCode(code);
   if (!event) notFound();
-  const h = await headers();
-  const o = originFrom(h);
-  const url = joinUrl(o, event.code);
-  return (
-    <div data-colourway="night" className="night">
-      <BoardScreen code={event.code} initial={snapshot(event)} joinQr={await qrSvg(url)} joinUrl={url} />
-    </div>
-  );
+  const url = joinUrl(originFrom(await headers()), event.code);
+  return <BoardScreen code={event.code} initial={snapshot(event)} joinQr={await qrSvg(url)} joinUrl={url} simulated={event.code === DEMO_CODE} />;
 }

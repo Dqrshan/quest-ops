@@ -77,7 +77,7 @@ export function Scanner({ onToken, active }: { onToken: (token: string) => void;
           <span className="scanner__frame" aria-hidden="true" />
         </div>
       ) : null}
-      {state === "denied" ? <p className="note">Camera access is blocked. Use your phone&apos;s own camera on the station QR, or type the code below.</p> : null}
+      {state === "denied" ? <p className="note">Camera access is blocked. Open your phone&apos;s camera app on the station QR instead, or type the code below.</p> : null}
       {state === "unsupported" ? (
         <p className="note">This browser cannot scan inside the page. Point your phone&apos;s camera at the station QR and tap the link, or type the code below.</p>
       ) : null}
@@ -92,7 +92,7 @@ export function Scanner({ onToken, active }: { onToken: (token: string) => void;
           <span className="field__label">Station code</span>
           <input value={manual} onChange={(e) => setManual(e.target.value)} autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="Paste the code or link" />
         </label>
-        <button className="btn btn--ghost" type="submit" disabled={!manual.trim()}>
+        <button className="btn btn--ghost btn--block" type="submit" disabled={!manual.trim()}>
           Use this code
         </button>
       </form>
