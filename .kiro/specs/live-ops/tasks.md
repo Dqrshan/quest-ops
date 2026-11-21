@@ -29,10 +29,11 @@
   - [x] 5.3 Stations tab: existing list and AI drafting
   - _Requirements: 2, 3, 4, 5, 6_
 
-- [x] 6. Player phone
+- [ ] 6. Player phone
   - [x] 6.1 Personal stream; level and progress; next station
   - [x] 6.2 Station sheet; correct team progress copy
-  - [x] 6.3 Celebration and haptics; announcement banner; round clock
+  - [x] 6.3 Celebration; announcement banner; round clock
+  - [ ] 6.3b Haptics on check-in (written with navigator.vibrate; needs a real phone to verify)
   - [x] 6.4 Recap on event end with share
   - _Requirements: 7_
 
