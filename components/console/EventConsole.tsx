@@ -3,13 +3,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Ago } from "../Ago";
+import { Empty } from "../Empty";
+import { Bat, Candle, Ghost, Moon, Skull, Spider } from "../spooky";
 import { Feed } from "../LiveBoard";
 import {
   IconArrowDown,
   IconArrowUp,
-  IconClock,
   IconDownload,
-  IconMegaphone,
   IconPause,
   IconPhone,
   IconPlay,
@@ -137,7 +137,7 @@ export function LiveTab({ event, initialSnap, initialLive }: { event: EventInfo;
     <div className="booth">
       <section className="panel panel--clock" aria-labelledby="clock-h">
         <h2 id="clock-h" className="panel__h">
-          <IconClock /> Round clock
+          <Moon /> Round clock
         </h2>
         <RoundClock endsAt={snap.clock.endsAt} label={snap.clock.label} offset={offset} className="booth__clock" />
         {!snap.clock.endsAt ? <p className="muted">No round running. Start one and every phone and the venue screen count down together.</p> : null}
@@ -146,7 +146,7 @@ export function LiveTab({ event, initialSnap, initialLive }: { event: EventInfo;
 
       <section className="panel panel--announce" aria-labelledby="ann-h">
         <h2 id="ann-h" className="panel__h">
-          <IconMegaphone /> Announce
+          <Bat /> Announce
         </h2>
         <Announcer eventId={event.id} />
         {snap.announcements.length ? (
@@ -180,7 +180,9 @@ export function LiveTab({ event, initialSnap, initialLive }: { event: EventInfo;
       </section>
 
       <section className="panel panel--reach" aria-labelledby="reach-h">
-        <h2 id="reach-h" className="panel__h">Where the crowd is</h2>
+        <h2 id="reach-h" className="panel__h">
+          <Ghost /> Where the crowd is
+        </h2>
         {snap.stations.length ? (
           <ol className="reach">
             {snap.stations.map((s) => {
@@ -206,12 +208,14 @@ export function LiveTab({ event, initialSnap, initialLive }: { event: EventInfo;
             })}
           </ol>
         ) : (
-          <p className="empty">No stations yet. Add them on the Stations tab.</p>
+          <Empty>No stations yet. Add them on the Stations tab.</Empty>
         )}
       </section>
 
       <section className="panel panel--stalled" aria-labelledby="stall-h">
-        <h2 id="stall-h" className="panel__h">Stalled for 15 minutes</h2>
+        <h2 id="stall-h" className="panel__h">
+          <Spider /> Stalled for 15 minutes
+        </h2>
         {live.stalled.length ? (
           <ul className="stalled">
             {live.stalled.map((p) => (
@@ -224,12 +228,14 @@ export function LiveTab({ event, initialSnap, initialLive }: { event: EventInfo;
             ))}
           </ul>
         ) : (
-          <p className="empty">{snap.event.status === "live" ? "Nobody is stuck. Everyone has scanned in the last 15 minutes." : "Shows players who stop scanning once the event is live."}</p>
+          <Empty>{snap.event.status === "live" ? "Nobody is stuck. Everyone has scanned in the last 15 minutes." : "Shows players who stop scanning once the event is live."}</Empty>
         )}
       </section>
 
       <section className="panel panel--feed" aria-labelledby="feed-h">
-        <h2 id="feed-h" className="panel__h">Just now</h2>
+        <h2 id="feed-h" className="panel__h">
+          <Candle /> Just now
+        </h2>
         <Feed snap={snap} limit={10} />
       </section>
     </div>
@@ -371,7 +377,7 @@ export function PlayersTab({ event, initialSnap, initialLive }: { event: EventIn
           </table>
         </div>
       ) : (
-        <p className="empty">{live.players.length ? "No player or team matches that search." : "Nobody has joined yet. Share the join code or put the venue screen up."}</p>
+        <Empty>{live.players.length ? "No player or team matches that search." : "Nobody has joined yet. Share the join code or put the venue screen up."}</Empty>
       )}
     </section>
   );
@@ -448,7 +454,7 @@ export function QuestList({ eventId, quests }: { eventId: number; quests: QuestR
   const [deleting, setDeleting] = useState<number | null>(null);
   const { busy, error, run } = useAction();
 
-  if (!quests.length) return <p className="empty">No stations yet. Draft a route with AI on the right, or add one by hand.</p>;
+  if (!quests.length) return <Empty>No stations yet. Draft a route with AI on the right, or add one by hand.</Empty>;
 
   return (
     <div className="stack">
@@ -691,7 +697,9 @@ export function SettingsTab({ event }: { event: EventInfo }) {
         </div>
       </form>
       <section className="danger-zone stack" aria-labelledby="dz-h">
-        <h2 id="dz-h" className="console__h2">Delete the event</h2>
+        <h2 id="dz-h" className="console__h2 h-glyph">
+          <Skull size={28} /> Delete the event
+        </h2>
         <p className="muted">Deletes the stations, players and scores. This cannot be undone. Type the join code to confirm.</p>
         <div className="inline-form">
           <label className="visually-hidden" htmlFor="dz">Join code</label>

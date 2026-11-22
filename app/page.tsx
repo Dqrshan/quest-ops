@@ -5,6 +5,7 @@ import { feedLine } from "@/lib/feed";
 import { KindIcon, kindLabel } from "@/components/icons";
 import { NowShowing } from "@/components/landing/NowShowing";
 import { ThreeScreens } from "@/components/landing/ThreeScreens";
+import { Bat, Candle, CAST, Cauldron, Cobweb, Ghost, HangingSpider, Moon, Tombstone } from "@/components/spooky";
 import { findPlayerByName, playerView, snapshot } from "@/lib/game";
 import { originFrom } from "@/lib/http";
 import { joinUrl, qrSvg } from "@/lib/qr";
@@ -67,8 +68,10 @@ export default async function Home() {
 
       <main id="main">
         <section className="hero" aria-labelledby="hero-h">
+          <Cobweb corner="tl" size={92} className="hero__web" />
           <div className="container">
             <div className="hero__bill">
+              <HangingSpider className="hero__spider" drop={120} size={44} />
               <h1 id="hero-h" className="hero__title">
                 Tonight, your event is the feature.
               </h1>
@@ -98,7 +101,7 @@ export default async function Home() {
               <li className="reel">
                 <span className="reel__n num" aria-hidden="true">1</span>
                 <div className="reel__text">
-                  <h3>Before the doors</h3>
+                  <h3 className="reel__h"><Cauldron size={32} /> Before the doors</h3>
                   <p>Describe the night. AI drafts a storyline and a route; you edit every station, then print admit-one tickets.</p>
                 </div>
                 <div className="reel__art" aria-hidden="true">
@@ -122,7 +125,7 @@ export default async function Home() {
               <li className="reel">
                 <span className="reel__n num" aria-hidden="true">2</span>
                 <div className="reel__text">
-                  <h3>Showtime</h3>
+                  <h3 className="reel__h"><Candle size={32} /> Showtime</h3>
                   <p>Players scan, answer and gather their crews. From the booth you announce, run the clock and pause play.</p>
                 </div>
                 <div className="reel__art" aria-hidden="true">
@@ -139,7 +142,7 @@ export default async function Home() {
               <li className="reel">
                 <span className="reel__n num" aria-hidden="true">3</span>
                 <div className="reel__text">
-                  <h3>End credits</h3>
+                  <h3 className="reel__h"><Tombstone size={32} /> End credits</h3>
                   <p>The screen names the top three and rolls the credits. Every result exports to a spreadsheet.</p>
                 </div>
                 <div className="reel__art" aria-hidden="true">
@@ -191,7 +194,10 @@ export default async function Home() {
 
         <section className="band" aria-labelledby="booth-h">
           <div className="container band__in">
-            <h2 id="booth-h" className="band__h">Run the night from the booth.</h2>
+            <div className="band__head">
+              <Bat size={96} className="band__bat" />
+              <h2 id="booth-h" className="band__h">Run the night from the booth.</h2>
+            </div>
             <dl className="controls">
               {CONTROLS.map(([k, v]) => (
                 <div key={k}>
@@ -207,6 +213,7 @@ export default async function Home() {
           <div className="container faq">
             <div className="faq__side">
               <h2 id="faq-h" className="section__h">The box office.</h2>
+              <Ghost size={120} className="faq__ghost" />
             </div>
             <div className="faq__list">
               {FAQ.map(([q, a]) => (
@@ -221,6 +228,7 @@ export default async function Home() {
 
         <section className="close" aria-labelledby="close-h">
           <div className="container close__in">
+            <Moon size={160} className="close__moon" />
             <h2 id="close-h" className="close__h">The doors open when you go live.</h2>
             <div className="row-actions">
               <Link className="btn btn--primary btn--lg" href="/console/new">
@@ -243,6 +251,13 @@ export default async function Home() {
             <Link href={`/board/${DEMO_CODE}`}>Demo screen</Link>
             <a href={REPO}>GitHub</a>
           </nav>
+          <ul className="cast" aria-hidden="true">
+            {CAST.map(([name, Glyph]) => (
+              <li key={name}>
+                <Glyph size={28} />
+              </li>
+            ))}
+          </ul>
           <p className="foot__fine">Built with Kiro for Kiroween 2026. MIT licence.</p>
         </div>
       </footer>

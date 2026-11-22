@@ -1,13 +1,10 @@
 "use client";
 import { Ago } from "./Ago";
+import { Empty } from "./Empty";
 import { feedLine } from "@/lib/feed";
 import type { Snapshot } from "@/lib/game";
 
 export { feedLine };
-
-function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="empty">{children}</p>;
-}
 
 export function TeamTable({ snap, changed, limit, caption = "Team standings" }: { snap: Snapshot; changed: Set<string>; limit?: number; caption?: string }) {
   const rows = snap.teams.slice(0, limit);

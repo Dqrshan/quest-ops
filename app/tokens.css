@@ -24,6 +24,9 @@
   --color-ticket: oklch(90% 0.035 85); --color-ticket-ink: oklch(16% 0.015 30); --color-ticket-muted: oklch(41% 0.03 45);
   --color-qr-ground: oklch(99% 0.006 85);
 
+  /* The Kiroween glyphs: outline in the surrounding ink, one accent part in the live print colour. */
+  --spooky-accent: var(--color-accent);
+
   --font-display: "Antonio Variable", "Antonio", "Arial Narrow", ui-sans-serif, sans-serif;
   --font-body: "Hanken Grotesk Variable", "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-outlier: "Azeret Mono Variable", "Azeret Mono", ui-monospace, monospace;

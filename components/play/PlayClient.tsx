@@ -1,8 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconCheck, IconClose, IconShare, KindIcon, kindLabel, kindVerb } from "../icons";
+import { Empty } from "../Empty";
 import { RoundClock } from "../live/useCountdown";
 import { Scanner } from "./Scanner";
+import { Bat, Cobweb, Ghost, Pumpkin, Tombstone, WitchHat } from "../spooky";
 import type { CompleteResult, PersonalFrame, PlayerQuest } from "@/lib/game";
 
 type Tab = "route" | "scan" | "standings";
@@ -121,7 +123,8 @@ export function PlayClient({ code, initial, initialToken }: { code: string; init
           <p className="ticket__rank">{view.me.rank ? `${ordinal(view.me.rank)} of ${view.me.of}` : "Unranked"}</p>
         </div>
         <div className="ticket__level">
-          <p>
+          <p className="ticket__lvlrow">
+            <WitchHat size={20} />
             <span className="ticket__lvl">{lvl.name}</span>
             {lvl.next !== null ? <span className="ticket__to"> {lvl.next - view.me.score} points to {lvl.nextName}</span> : <span className="ticket__to"> Top level</span>}
           </p>
@@ -150,6 +153,7 @@ export function PlayClient({ code, initial, initialToken }: { code: string; init
           <section aria-labelledby="route-h" className="stack stack--lg">
             {next ? (
               <article className="next" aria-labelledby="next-h">
+                <Cobweb corner="tr" size={64} />
                 <h2 id="next-h" className="next__title">{next.title}</h2>
                 <p className="next__hint">Your next stop{next.hint ? `: ${next.hint}` : ""}</p>
                 <div className="next__row">
@@ -172,7 +176,7 @@ export function PlayClient({ code, initial, initialToken }: { code: string; init
               {view.quests.length ? (
                 <Route quests={view.quests} next={view.next} onOpen={setSheet} />
               ) : (
-                <p className="empty">No stations yet. The organizer is still setting the stage.</p>
+                <Empty>No stations yet. The organizer is still setting the stage.</Empty>
               )}
             </div>
           </section>
@@ -362,6 +366,7 @@ function Jolt({ result, onClose }: { result: Done; onClose: () => void }) {
   return (
     <div className={`jolt${result.first ? " jolt--first" : ""}${result.repeat ? " jolt--repeat" : ""}`} role="status" onClick={onClose}>
       <div className="jolt__card">
+        {result.repeat ? <Ghost size={56} className="jolt__glyph" /> : result.first ? <Bat size={64} className="jolt__glyph" /> : <Pumpkin size={56} className="jolt__glyph" />}
         {result.repeat ? (
           <>
             <p className="jolt__fig">Already counted</p>
@@ -470,7 +475,9 @@ function Recap({ frame }: { frame: PersonalFrame }) {
   const text = `I finished ${v.me.rank ? ordinal(v.me.rank) : "unranked"} of ${v.me.of} at ${frame.event.name} with ${v.me.score} points, reaching ${v.me.done} of ${v.quests.length} stations.`;
   return (
     <section className="recap" aria-labelledby="recap-h">
-      <h2 id="recap-h" className="recap__title">The end</h2>
+      <h2 id="recap-h" className="recap__title">
+        <Tombstone size={44} /> The end
+      </h2>
       <p className="recap__place num">{v.me.rank ? ordinal(v.me.rank) : "Unranked"}</p>
       <p className="recap__line">
         of {v.me.of} players, <span className="num">{v.me.score}</span> points, <span className="num">{v.me.done}</span> of{" "}
@@ -543,6 +550,7 @@ function JoinForm({
       }}
     >
       <div className="poster__bill">
+        <Cobweb corner="tr" size={88} />
         <h1 className="poster__title">{frame.event.name}</h1>
         {frame.event.venue ? <p className="poster__venue">{frame.event.venue}</p> : null}
         {frame.event.blurb ? <p className="poster__story">{frame.event.blurb}</p> : null}

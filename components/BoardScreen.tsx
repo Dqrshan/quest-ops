@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Feed, PlayerTable, TeamTable } from "./LiveBoard";
 import { feedLine } from "@/lib/feed";
 import { IconExpand } from "./icons";
+import { Bat, Candle, Cauldron, Cobweb, Skull, Tombstone } from "./spooky";
 import { RoundClock } from "./live/useCountdown";
 import { useSnapshot } from "./live/useSnapshot";
 import type { Announcement, FeedItem, Snapshot } from "@/lib/game";
@@ -21,6 +22,7 @@ export function BoardScreen({ code, initial, joinQr, joinUrl, simulated }: Props
 
   return (
     <main className={`screen${idle ? " screen--idle" : ""}`}>
+      <Cobweb corner="tl" size={88} className="screen__web" />
       <header className="screen__head">
         <div className="screen__title">
           <h1>{snap.event.name}</h1>
@@ -96,6 +98,7 @@ function Spotlight({ item }: { item: FeedItem }) {
   const l = feedLine(item);
   return (
     <aside className="spotlight" aria-live="polite">
+      {item.kind === "bonus" ? <Cauldron size={48} /> : <Bat size={56} />}
       <p className="spotlight__line">
         <strong>{l.who}</strong> {l.what}
       </p>
@@ -129,6 +132,7 @@ function useIntermission(list: Announcement[], offset: number) {
 function Intermission({ a }: { a: Announcement }) {
   return (
     <div className={`intermission intermission--${a.tone}`} role="alert">
+      {a.tone === "alert" ? <Skull size={120} className="intermission__glyph" /> : <Candle size={120} className="intermission__glyph" />}
       <h2 className="intermission__label">{a.tone === "alert" ? "Attention" : "Intermission"}</h2>
       <p className="intermission__body">{a.body}</p>
     </div>
@@ -166,7 +170,9 @@ function Finale({ snap }: { snap: Snapshot }) {
   return (
     <main className="finale">
       <div className="finale__bill">
-        <h1>The end</h1>
+        <h1 className="finale__h">
+          <Tombstone size={140} className="finale__stone" /> The end
+        </h1>
         <p className="finale__event">{snap.event.name}</p>
         {top.length ? (
           <ol className="finale__starring" aria-label="Top teams">

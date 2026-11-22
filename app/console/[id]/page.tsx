@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventHeader, GeneratorPanel, LiveTab, PlayersTab, QuestList, SettingsTab, type EventInfo } from "@/components/console/EventConsole";
+import { Cauldron } from "@/components/spooky";
 import { getEventById, listQuests, liveView, snapshot } from "@/lib/game";
 import { requireOrganizer } from "../gate";
 
@@ -44,7 +45,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
             <QuestList eventId={event.id} quests={quests} />
           </section>
           <aside aria-labelledby="g-h" className="stack stack--lg panel">
-            <h2 id="g-h" className="console__h2">Draft with AI</h2>
+            <h2 id="g-h" className="console__h2 h-glyph">
+              <Cauldron size={32} /> Draft with AI
+            </h2>
             <GeneratorPanel eventId={event.id} venue={event.venue} hasStory={Boolean(event.blurb)} />
           </aside>
         </div>

@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ErrorLine, post, useAction } from "./Forms";
 import { blankQuest, QuestFields } from "./QuestFields";
+import { Cauldron } from "../spooky";
 import type { QuestDraft } from "@/lib/game";
 
 const PROVIDER: Record<string, string> = { groq: "Groq", anthropic: "Claude", openai: "OpenAI", builtin: "the built-in packs" };
@@ -94,7 +95,9 @@ export function SetupFlow() {
             void draft();
           }}
         >
-          <h2 className="console__h2">Brief the writer</h2>
+          <h2 className="console__h2 h-glyph">
+            <Cauldron size={32} /> Brief the writer
+          </h2>
           <p className="muted">The AI drafts a storyline and a route of stations. You review every one before anything is saved.</p>
           <label className="field">
             <span className="field__label">Theme or vibe</span>

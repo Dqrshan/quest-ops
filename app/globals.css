@@ -665,3 +665,84 @@ button.route__btn:focus-visible { outline: 2px solid var(--color-focus); outline
   .credits__roll { animation: none; }
   .leader__sweep { display: none; }
 }
+
+/* ------------------------------------------------------ Kiroween glyphs */
+
+.spooky { flex: none; overflow: visible; }
+.spooky__a { color: var(--spooky-accent); }
+.cobweb { position: absolute; color: var(--color-rule-strong); pointer-events: none; }
+.cobweb--tl { top: 0; left: 0; }
+.cobweb--tr { top: 0; right: 0; transform: scaleX(-1); }
+.cobweb--bl { bottom: 0; left: 0; transform: scaleY(-1); }
+.cobweb--br { bottom: 0; right: 0; transform: scale(-1); }
+
+/* Each ground decides the glyph's two inks: the outline follows the text, the accent follows the print pass. */
+.ticket, .admit, .recap { --spooky-accent: var(--color-blood); }
+.ticket .cobweb, .admit .cobweb { color: var(--color-ticket-muted); }
+.band { --spooky-accent: var(--color-blood-ink); }
+.jolt__card, .intermission--alert { --spooky-accent: var(--color-ticket); }
+.jolt--first .jolt__card, .spotlight { --spooky-accent: var(--color-blood); }
+.jolt--repeat .jolt__card { --spooky-accent: var(--color-accent); }
+.finale__h { --spooky-accent: var(--color-ink); }
+
+.empty { display: flex; align-items: center; gap: var(--space-md); }
+.empty__ghost { color: var(--color-rule-strong); }
+.h-glyph { display: flex; align-items: center; gap: var(--space-sm); }
+.panel__h .spooky { color: var(--color-ink-2); }
+
+/* Landing */
+.hero { position: relative; }
+.hero__web { color: var(--color-rule); }
+.hero__bill { position: relative; }
+.hang { position: absolute; top: calc(-1 * var(--space-2xl)); right: calc(33.333% + var(--gap-columns) / 2); display: grid; justify-items: center; color: var(--color-ink-2); pointer-events: none; z-index: var(--z-base); animation: hang-drop 1.4s var(--ease-out) 0.3s 1 both; }
+.hang__thread { display: block; width: 1px; height: var(--hang-drop); background: currentColor; opacity: 0.6; }
+.hang__spider { margin-top: calc(-1 * var(--space-xs)); }
+@keyframes hang-drop { from { transform: translateY(calc(-1 * var(--hang-drop) - 48px)); } to { transform: none; } }
+.reel__h { display: flex; align-items: center; gap: var(--space-sm); }
+.reel__h .spooky { color: var(--color-ink-2); }
+.band__head { display: flex; align-items: center; gap: var(--space-lg); }
+.band__bat { color: var(--color-blood-ink); }
+.faq__ghost { color: var(--color-rule-strong); margin-top: var(--space-md); }
+.close__in { position: relative; }
+.close__moon { position: absolute; top: 0; right: var(--gutter); color: var(--color-ink-2); }
+.cast { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-lg); color: var(--color-muted); }
+
+/* Phone */
+.ticket__lvlrow { display: flex; align-items: center; gap: var(--space-xs); }
+.next { position: relative; }
+.next .cobweb { color: var(--color-rule-strong); }
+.next__title { padding-right: var(--space-2xl); }
+.jolt__glyph { justify-self: center; }
+.recap__title { display: flex; align-items: flex-end; gap: var(--space-sm); }
+.poster__bill { position: relative; }
+.poster__bill .cobweb { color: var(--color-rule-strong); }
+.poster__title { max-width: calc(100% - var(--space-2xl)); }
+
+/* Venue screen */
+.screen { position: relative; }
+.screen__web { color: var(--color-rule); }
+.spotlight { gap: var(--space-lg); align-items: center; }
+.spotlight .spooky { color: var(--color-accent-ink); }
+.spotlight__line { flex: 1 1 auto; min-width: 0; }
+.intermission__glyph { color: var(--color-ink-2); }
+.intermission--alert .intermission__glyph { color: var(--color-blood-ink); }
+.finale__h { display: flex; align-items: flex-end; gap: var(--space-lg); }
+.finale__stone { color: var(--color-blood); }
+
+/* Booth, print, lost */
+.admit { position: relative; }
+.lost__stone { color: var(--color-ink-2); }
+
+@media (max-width: 64rem) {
+  .close__moon { position: static; width: 96px; height: 96px; }
+  .hang { right: 0; }
+}
+@media (max-width: 40rem) {
+  .hang, .hero__web, .screen__web { display: none; }
+  .band__bat { width: 64px; height: 64px; }
+  .faq__ghost { display: none; }
+  .finale__stone { width: 88px; height: 88px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hang { animation: none; }
+}
