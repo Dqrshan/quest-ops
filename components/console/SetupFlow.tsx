@@ -5,6 +5,7 @@ import { ErrorLine, post, useAction } from "./Forms";
 import { blankQuest, QuestFields } from "./QuestFields";
 import type { QuestDraft } from "@/lib/game";
 
+const PROVIDER: Record<string, string> = { groq: "Groq", anthropic: "Claude", openai: "OpenAI", builtin: "the built-in packs" };
 type Draft = QuestDraft & { keep: boolean };
 const STEPS = ["The event", "The brief", "The route"] as const;
 
@@ -137,7 +138,7 @@ export function SetupFlow() {
           <h2 className="console__h2">Review the route</h2>
           {source ? (
             <p className={source.provider === "builtin" ? "note" : "muted"}>
-              {source.note ?? `Drafted by ${source.provider}.`} Check every codeword: you print it on the station sign.
+              {source.note ?? `Drafted by ${PROVIDER[source.provider] ?? source.provider}.`} Check every codeword: you print it on the station sign.
             </p>
           ) : null}
           <label className="field">

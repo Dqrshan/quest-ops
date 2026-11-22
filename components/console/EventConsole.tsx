@@ -534,6 +534,7 @@ export function QuestList({ eventId, quests }: { eventId: number; quests: QuestR
   );
 }
 
+const PROVIDER: Record<string, string> = { groq: "Groq", anthropic: "Claude", openai: "OpenAI", builtin: "the built-in packs" };
 type Draft = QuestDraft & { keep: boolean };
 
 export function GeneratorPanel({ eventId, venue, hasStory }: { eventId: number; venue: string; hasStory: boolean }) {
@@ -550,7 +551,7 @@ export function GeneratorPanel({ eventId, venue, hasStory }: { eventId: number; 
       const d = await post<{ provider: string; story: string; quests: QuestDraft[]; note?: string }>(`/api/console/events/${eventId}/generate`, { ...f, venue });
       setDrafts(d.quests.map((q) => ({ ...q, keep: true })));
       setStory(d.story);
-      setNote(d.note ?? `Drafted by ${d.provider}.`);
+      setNote(d.note ?? `Drafted by ${PROVIDER[d.provider] ?? d.provider}.`);
     }, false);
 
   const save = (list: QuestDraft[]) =>

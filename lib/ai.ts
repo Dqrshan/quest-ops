@@ -12,7 +12,7 @@ export type GenerateInput = {
 };
 
 export type GenerateResult = {
-  provider: "anthropic" | "openai" | "builtin";
+  provider: "groq" | "anthropic" | "openai" | "builtin";
   story: string;
   quests: QuestDraft[];
   note?: string;
@@ -27,6 +27,7 @@ Return ONLY a JSON object, no prose, no code fences:
    "hint": string (where to find the station, max 10 words, generic unless the venue was described),
    "team_size": integer 2-6 (only for "team": how many teammates must scan)}]}
 Rules: "scan" = reach the station. "answer" = read a codeword at the station or answer a question about the event. "team" = several teammates must reach the station together.
+When a field does not apply to a quest's kind, return "" for strings and 0 for numbers.
 Order quests as a route with rising points; make the last one the climax. Never invent facts about the venue. Keep language plain enough to read on a phone in a dark room.`;
 
 function userPrompt(i: GenerateInput) {
@@ -58,9 +59,11 @@ export function parseInput(raw: Record<string, unknown>): GenerateInput {
 }
 
 export async function generateQuests(input: GenerateInput): Promise<GenerateResult> {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY?.trim();
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
+  const openaiKey = process.env.OPENAI_API_KEY?.trim();
   try {
+    if (groqKey) return { provider: "groq", ...(await viaGroq(groqKey, input)) };
     if (anthropicKey) return { provider: "anthropic", ...(await viaAnthropic(anthropicKey, input)) };
     if (openaiKey) return { provider: "openai", ...(await viaOpenAI(openaiKey, input)) };
   } catch (e) {
@@ -73,8 +76,71 @@ export async function generateQuests(input: GenerateInput): Promise<GenerateResu
   return {
     provider: "builtin",
     ...builtin(input),
-    note: "No AI key is set, so this draft came from the built-in packs. Set ANTHROPIC_API_KEY or OPENAI_API_KEY for routes written for your venue.",
+    note: "No AI key is set, so this draft came from the built-in packs. Set GROQ_API_KEY (free at console.groq.com), ANTHROPIC_API_KEY or OPENAI_API_KEY for routes written for your venue.",
   };
+}
+
+/** The shape Groq's strict mode decodes against. Strict mode needs every field required, so unused ones come back empty. */
+const QUEST_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["story", "quests"],
+  properties: {
+    story: { type: "string" },
+    quests: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "brief", "kind", "points", "answer", "hint", "team_size"],
+        properties: {
+          title: { type: "string" },
+          brief: { type: "string" },
+          kind: { type: "string", enum: ["scan", "answer", "team"] },
+          points: { type: "integer" },
+          answer: { type: "string" },
+          hint: { type: "string" },
+          team_size: { type: "integer" },
+        },
+      },
+    },
+  },
+} as const;
+
+/** Groq exposes an OpenAI-compatible API. Strict JSON schema where the model supports it, JSON object mode otherwise. */
+async function viaGroq(key: string, input: GenerateInput) {
+  const model = process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-120b";
+  const strict = /^(openai\/gpt-oss|qwen\/)/.test(model);
+  const call = (format: object) =>
+    fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model,
+        temperature: 0.8,
+        max_completion_tokens: 4000,
+        ...(model.startsWith("openai/gpt-oss") ? { reasoning_effort: "low" } : {}),
+        response_format: format,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: userPrompt(input) },
+        ],
+      }),
+      signal: AbortSignal.timeout(45_000),
+    });
+  let res = await call(strict ? { type: "json_schema", json_schema: { name: "quest_route", strict: true, schema: QUEST_SCHEMA } } : { type: "json_object" });
+  // A model or account that rejects the schema gets one retry in plain JSON mode.
+  if (res.status === 400 && strict) res = await call({ type: "json_object" });
+  if (!res.ok) throw new Error(groqError(res.status));
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return coerce(data.choices?.[0]?.message?.content ?? "", input);
+}
+
+function groqError(status: number) {
+  if (status === 401) return "Groq rejected the key; check GROQ_API_KEY";
+  if (status === 404) return "Groq does not know that model; check GROQ_MODEL";
+  if (status === 429) return "Groq rate limit reached; wait a minute and draft again";
+  return `Groq ${status}`;
 }
 
 async function viaAnthropic(key: string, input: GenerateInput) {

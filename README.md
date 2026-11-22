@@ -86,7 +86,7 @@ To test on a phone, open the console at your laptop's network address (for examp
 - **Next.js App Router, React 19, TypeScript (strict).** Pages render on the server with real data, so nothing waits on JavaScript before it shows.
 - **SQLite** (`better-sqlite3`, WAL mode) in `data/questops.db`. Every write that changes what a screen shows bumps `events.version` in the same transaction. New columns migrate in place.
 - **One live loop per event** (`lib/bus.ts`). It reads one integer every 400 ms while anyone is watching, builds the snapshot once per version and pushes it to every screen over Server-Sent Events. A burst of scans becomes one broadcast. The loop stops when the last screen disconnects. Tested with 60 open connections: one loop, and every client got every update.
-- **AI** (`lib/ai.ts`) calls Anthropic or OpenAI when a key is set. Model output is validated before anyone sees it. Without a key, or if the provider fails, built-in haunted and classic packs draft the route and the console says so.
+- **AI** (`lib/ai.ts`) calls Groq, Anthropic or OpenAI, whichever key is set first in that order. Groq runs `openai/gpt-oss-120b` with a strict JSON schema, so replies come back in the right shape. Model output is validated before anyone sees it. Without a key, or if the provider fails, built-in haunted and classic packs draft the route and the console says so.
 - **Plain CSS with design tokens** (`app/tokens.css`). The fonts are Antonio, Hanken Grotesk and Azeret Mono, self-hosted through Fontsource.
 
 ### Configuration
@@ -96,6 +96,7 @@ Copy `.env.example` to `.env.local`.
 | Variable | Purpose |
 | --- | --- |
 | `CONSOLE_PASSCODE` | Organizer passcode. Unset: the console is open in development and disabled in production |
+| `GROQ_API_KEY` / `GROQ_MODEL` | Use Groq for drafting (free tier at [console.groq.com](https://console.groq.com/keys)). Model defaults to `openai/gpt-oss-120b` |
 | `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` | Use Claude for drafting |
 | `OPENAI_API_KEY` / `OPENAI_MODEL` | Use OpenAI for drafting |
 | `PUBLIC_ORIGIN` | Fixed origin printed into QR codes |
