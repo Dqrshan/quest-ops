@@ -50,9 +50,15 @@ const LINES = [
   "The epitaph is hard to read in the dark. Use your phone light.",
 ];
 
+/** After this long without a scan the demo looks abandoned, so the next visitor gets a fresh night. */
+const STALE_MS = 10 * 60_000;
+
 export function ensureDemo(): EventRow {
   const existing = getEventByCode(DEMO_CODE);
-  if (existing) return existing;
+  if (existing) {
+    refreshIfStale(existing);
+    return getEventByCode(DEMO_CODE)!;
+  }
   const d = db();
   const e = d.transaction(() => {
     const ev = createEvent(
@@ -108,6 +114,21 @@ function resetDemo(e: EventRow) {
   })();
   replayOpening(e);
   addAnnouncement(e.id, "The hall resets at midnight. Everyone back to the gatehouse.", "info");
+}
+
+/** Replays the opening, renews the clock and clears visitors who left long ago, when nobody has scanned for a while. */
+function refreshIfStale(e: EventRow) {
+  if (e.status !== "live") return;
+  const last = (db().prepare("SELECT MAX(at) AS at FROM completions WHERE event_id = ?").get(e.id) as { at: number | null }).at ?? 0;
+  const clockDone = !e.ends_at || e.ends_at < Date.now();
+  if (Date.now() - last < STALE_MS && !clockDone) return;
+  if (Date.now() - last >= STALE_MS) {
+    db()
+      .prepare("DELETE FROM players WHERE event_id = ? AND token NOT LIKE 'bot-%' AND joined_at < ?")
+      .run(e.id, Date.now() - STALE_MS);
+    resetDemo(e);
+  }
+  setClock(e.id, 30, "Midnight round");
 }
 
 const sim = globalThis as unknown as { __questopsSim?: { lastLine: number; line: number } };
