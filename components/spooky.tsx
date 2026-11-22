@@ -153,15 +153,3 @@ export function HangingSpider({ drop = 64, size = 36, className = "" }: { drop?:
   );
 }
 
-export const CAST = [
-  ["Ghost", Ghost],
-  ["Spider", Spider],
-  ["Witch hat", WitchHat],
-  ["Bat", Bat],
-  ["Pumpkin", Pumpkin],
-  ["Skull", Skull],
-  ["Moon", Moon],
-  ["Candle", Candle],
-  ["Cauldron", Cauldron],
-  ["Tombstone", Tombstone],
-] as const;

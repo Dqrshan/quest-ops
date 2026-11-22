@@ -5,7 +5,7 @@ import { feedLine } from "@/lib/feed";
 import { KindIcon, kindLabel } from "@/components/icons";
 import { NowShowing } from "@/components/landing/NowShowing";
 import { ThreeScreens } from "@/components/landing/ThreeScreens";
-import { Bat, Candle, CAST, Cauldron, Cobweb, Ghost, HangingSpider, Moon, Tombstone } from "@/components/spooky";
+import { Bat, Candle, Cauldron, Cobweb, Ghost, HangingSpider, Moon, Tombstone } from "@/components/spooky";
 import { findPlayerByName, playerView, snapshot } from "@/lib/game";
 import { originFrom } from "@/lib/http";
 import { joinUrl, qrSvg } from "@/lib/qr";
@@ -251,13 +251,6 @@ export default async function Home() {
             <Link href={`/board/${DEMO_CODE}`}>Demo screen</Link>
             <a href={REPO}>GitHub</a>
           </nav>
-          <ul className="cast" aria-hidden="true">
-            {CAST.map(([name, Glyph]) => (
-              <li key={name}>
-                <Glyph size={28} />
-              </li>
-            ))}
-          </ul>
           <p className="foot__fine">Built with Kiro for Kiroween 2026. MIT licence.</p>
         </div>
       </footer>

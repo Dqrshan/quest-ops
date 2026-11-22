@@ -705,7 +705,6 @@ button.route__btn:focus-visible { outline: 2px solid var(--color-focus); outline
 .faq__ghost { color: var(--color-rule-strong); margin-top: var(--space-md); }
 .close__in { position: relative; }
 .close__moon { position: absolute; top: 0; right: var(--gutter); color: var(--color-ink-2); }
-.cast { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-lg); color: var(--color-muted); }
 
 /* Phone */
 .ticket__lvlrow { display: flex; align-items: center; gap: var(--space-xs); }
