@@ -23,6 +23,7 @@
 - [x] 4. Haunted Hall demo
   - [x] 4.1 Seed the Halloween demo event
   - [x] 4.2 Simulator in the bus: check-ins, announcements, reset, clock renewal
+  - [x] 4.3 Refresh an idle demo on the next visit (verified by ageing the demo an hour: fresh feed, 30-minute clock, no stalled players)
   - _Requirements: 10_
 
 - [x] 5. Console mission control
