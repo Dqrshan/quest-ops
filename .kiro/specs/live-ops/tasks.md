@@ -13,9 +13,11 @@
   - [x] 2.4 Endpoints: announcements, clock and pause, adjust, remove player, export CSV, live view
   - _Requirements: 2, 3, 4, 5, 6_
 
-- [x] 3. AI setup flow
+- [ ] 3. AI setup flow
   - [x] 3.1 Storyline in AI output; built-in haunted and classic packs
   - [x] 3.2 `/api/console/generate` and the guided setup at `/console/new`
+  - [x] 3.3 Groq provider: reply parsing and bad-key fallback (verified with Groq-shaped replies and a rejected key against api.groq.com)
+  - [ ] 3.4 Groq provider: a real draft with a valid GROQ_API_KEY
   - _Requirements: 9_
 
 - [x] 4. Haunted Hall demo
